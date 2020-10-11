@@ -1,26 +1,44 @@
 #ifndef HUFF_TREE_HPP_
 #define HUFF_TREE_HPP_
-#include "BinTree.hpp"
-struct HuffChar {
-    char chr;
-    unsigned int weight;
-    HuffChar(char c, unsigned int w = 0) : chr(c), weight(w) {}
-    bool operator<(const HuffChar& hc)
+
+#include <algorithm>
+
+template <typename T>
+struct Node {
+    Node<T>* left;
+    Node<T>* right;
+    T val;
+    Node(const T& val, Node<T>* l = nullptr, Node<T>* r = nullptr) : left(l), right(r), val(val) {}
+    ~Node() {}
+    void Release()
     {
-        // 颠倒
-        return (this->weight > hc.weight);
+        if (left != nullptr) {
+            left->Release();
+            delete left;
+            left = nullptr;
+        }
+        if (right != nullptr) {
+            right->Release();
+            delete right;
+            right = nullptr;
+        }
     }
-    bool operator>(const HuffChar& hc)
+    bool operator<(const Node<T>& node) const
     {
-        // 颠倒
-        return (this->weight < hc.weight);
-    }
-    bool operator==(const HuffChar& hc)
-    {
-        return (this->weight == hc.weight);
+        return (val < node.val);
     }
 };
 
-using HuffTree = BinTree<HuffChar>;
+struct HuffChar {
+    char chr;
+    int weight;
+    HuffChar(char c, int w = 0) : chr(c), weight(w) {}
+    bool operator<(const HuffChar& hc) const
+    {
+        return (weight > hc.weight);
+    }
+};
+
+using HuffNode = Node<HuffChar>;
 
 #endif  // HUFF_TREE_HPP_
