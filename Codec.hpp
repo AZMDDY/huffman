@@ -4,6 +4,7 @@
 #include <string>
 #include <queue>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <stack>
 #include <functional>
@@ -21,6 +22,15 @@ std::string ReadFile(const std::string& fileName)
     }
     std::string data((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
     return std::move(data);
+}
+
+void WriteFile(const std::string& content, const std::string& fileName)
+{
+    std::ofstream ofs(fileName);
+    if (ofs.is_open()) {
+        ofs << content;
+        ofs.close();
+    }
 }
 
 // 统计文件中字符出现的频率
@@ -95,31 +105,62 @@ void Compress(const std::string& inFile, const std::string& outFile)
     delete huffTree;
     auto data = ReadFile(inFile);
 
-    std::fstream fst(outFile, std::fstream::binary | std::fstream::out | std::fstream::app);
+    std::fstream fst(outFile, std::fstream::binary | std::fstream::out);
 
     uint8_t buf = 0;
     int count = 0;
     for (auto& c : data) {
         auto val = huffMap[static_cast<int>(c)];
         for (auto bit : val) {
+            std::cout << bit;
             buf = buf | (static_cast<int>(bit) << (7 - count));
             count++;
             if (count == 8) {
-                std::cout << int(buf) << std::endl;
+                // std::cout << int(buf) << std::endl;
                 fst.write(reinterpret_cast<char*>(&buf), sizeof(buf));
                 buf = 0;
                 count = 0;
             }
         }
     }
+    std::cout << std::endl;
     if (count != 0) {
         fst.write(reinterpret_cast<char*>(&buf), sizeof(buf));
     }
 }
 
-void Decompress(const std::string& inFile, const std::string& outFile)
+void Decompress(const std::string& inFile, HuffNode* root, const std::string& outFile)
 {
-    
+    auto data = ReadFile(inFile);
+    auto node = root;
+    std::string res = "";
+    std::string dataBit;
+    for (auto& c : data) {
+        std::stringstream ss;
+        for (int i = 7; i >= 0; i--) {
+            ss << ((c >> i) & 1);
+        }
+        dataBit += ss.str();
+    }
+    std::cout << dataBit << std::endl;
+    int i = 0;
+    while (i < dataBit.size()) {
+        if (dataBit[i] == '0' && node->left != nullptr) {
+            node = node->left;
+            i++;
+        }
+        else if (dataBit[i] == '1' && node->right != nullptr) {
+            node = node->right;
+            i++;
+        }
+        if (node->left == nullptr && node->right == nullptr) {
+            std::cout << node->val.chr;
+            res += node->val.chr;
+            node = root;
+        }
+    }
+    std::cout<< "\n" << res << std::endl;
+    WriteFile(res, outFile);
 }
 
 #endif  // CODEC_HPP_
