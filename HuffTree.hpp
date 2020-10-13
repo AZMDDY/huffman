@@ -30,12 +30,17 @@ struct Node {
 };
 
 struct HuffChar {
-    char chr;
-    int weight;
-    HuffChar(char c, int w = 0) : chr(c), weight(w) {}
+    uint16_t chr;
+    uint32_t weight;
+    HuffChar(uint16_t c, uint32_t w = 0) : chr(c), weight(w) {}
     bool operator<(const HuffChar& hc) const
     {
-        return (weight > hc.weight);
+        if (weight == hc.weight) {
+            return (chr > hc.chr);
+        }
+        else {
+            return (weight > hc.weight);
+        }
     }
 };
 

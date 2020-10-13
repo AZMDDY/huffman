@@ -11,7 +11,7 @@
 #include <unordered_map>
 #include "HuffTree.hpp"
 
-static char uChr = ' ';
+static uint16_t uChr = 256;
 
 std::string ReadFile(const std::string& fileName)
 {
@@ -38,17 +38,14 @@ std::priority_queue<HuffNode> Stats(const std::string& fileName)
 {
     auto data = ReadFile(fileName);
 
-    std::vector<int> chrFreq(256, 0);
+    std::vector<uint32_t> chrFreq(256, 0);
     for (auto& c : data) {
-        chrFreq[c]++;
+        chrFreq[static_cast<uint8_t>(c)]++;
     }
     std::priority_queue<HuffNode> res;
-    for (int i = 0; i < chrFreq.size(); i++) {
+    for (uint16_t i = 0; i < chrFreq.size(); i++) {
         if (chrFreq[i] != 0) {
-            res.emplace(HuffChar(static_cast<char>(i), chrFreq[i]));
-        }
-        else {
-            uChr = static_cast<char>(i);
+            res.emplace(HuffChar(static_cast<uint16_t>(i), chrFreq[i]));
         }
     }
     return std::move(res);
@@ -81,7 +78,7 @@ std::vector<std::vector<bool>> CreateHuffMap(HuffNode* root)
                 return;
             }
             if (node->left == nullptr && node->right == nullptr) {
-                res[static_cast<int>(node->val.chr)] = tmp;
+                res[node->val.chr] = tmp;
                 return;
             }
             auto lTmp = tmp;
@@ -159,7 +156,7 @@ void Decompress(const std::string& inFile, HuffNode* root, const std::string& ou
             node = root;
         }
     }
-    std::cout<< "\n" << res << std::endl;
+    std::cout << "\n" << res << std::endl;
     WriteFile(res, outFile);
 }
 
